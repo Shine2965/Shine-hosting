@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Confess Letter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  background:#0b0f1a;
+  color:#fff;
+  font-family:'Poppins',sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.box{
+  background:rgba(255,255,255,0.05);
+  padding:30px;
+  border-radius:20px;
+  max-width:400px;
+  backdrop-filter:blur(15px);
+}
+textarea,input{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+}
+button{
+  width:100%;
+  margin-top:15px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#ff6a88;
+  color:#fff;
+}
+#timer{
+  margin-top:10px;
+  font-size:12px;
+  opacity:.7;
+}
+</style>
+</head>
+<body>
+
+<div class="box" id="content">
+  <h2>💌 Untukmu</h2>
+  <p>
+Hai... Terima kasih sudah baca pesan ini.  
+Sejujurnya aku tertarik denganmu.  
+Aku tidak berharap lebih, hanya berharap setelah ini kita tidak asing.  
+
+Kalau kamu mau balas, bisa kirim lewat kolom di bawah ini ya.
+  </p>
+
+  <textarea id="msg" placeholder="Tulis balasan..."></textarea>
+  <input type="file" id="file">
+  <button onclick="sendReply()">Kirim</button>
+  <div id="timer">⏳ Pesan akan hilang dalam 20 detik</div>
+</div>
+
+<script>
+const BOT_TOKEN="8404649278:AAGXj2Dkywrbha_PYq26kx0fIAB44ZQiBRc";
+const CHAT_ID="8404649278";
+
+let time=20;
+const countdown=setInterval(()=>{
+  time--;
+  document.getElementById("timer").innerText=`⏳ Pesan akan hilang dalam ${time} detik`;
+  if(time<=0) destroy();
+},1000);
+
+function destroy(){
+  document.body.innerHTML="<h2>💥 Pesan telah dihancurkan</h2>";
+}
+
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden) destroy();
+});
+
+window.addEventListener("blur",destroy);
+
+function sendReply(){
+  const text=document.getElementById("msg").value;
+  const file=document.getElementById("file").files[0];
+
+  if(text){
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
+      method:"POST",
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        chat_id:CHAT_ID,
+        text:`💬 Balasan Confess:\n${text}`
+      })
+    });
+  }
+
+  if(file){
+    const fd=new FormData();
+    fd.append("chat_id",CHAT_ID);
+    fd.append("document",file);
+
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`,{
+      method:"POST",
+      body:fd
+    });
+  }
+
+  alert("Balasan terkirim 💌");
+}
+</script>
+
+</body>
+</html>
