@@ -4,67 +4,24 @@
 <meta charset="UTF-8">
 <title>Private Confess Letter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-
 <style>
 *{box-sizing:border-box}
-body{
-  font-family:'Poppins',sans-serif;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  color:#fff;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-.card{
-  width:340px;
-  padding:30px;
-  border-radius:20px;
-  background:rgba(255,255,255,0.08);
-  backdrop-filter:blur(12px);
-  box-shadow:0 20px 40px rgba(0,0,0,.3);
-  text-align:center;
-}
-input{
-  width:100%;
-  padding:12px;
-  margin-top:15px;
-  border-radius:12px;
-  border:none;
-  outline:none;
-}
-button{
-  width:100%;
-  padding:12px;
-  margin-top:15px;
-  border:none;
-  border-radius:12px;
-  background:#ff6a88;
-  color:#fff;
-  font-weight:600;
-  cursor:pointer;
-}
-#loading,#blocked{
-  margin-top:15px;
-  font-size:14px;
-  opacity:.85;
-}
-#blocked{
-  color:#ffb3b3;
-}
+body{font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);color:#fff;display:flex;justify-content:center;align-items:center;height:100vh}
+.card{width:340px;padding:30px;border-radius:20px;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);box-shadow:0 20px 40px rgba(0,0,0,.3);text-align:center}
+input,button{width:100%;padding:12px;margin-top:15px;border-radius:12px;border:none}
+button{background:#ff6a88;color:#fff;font-weight:600;cursor:pointer}
+#loading,#blocked{margin-top:15px;font-size:14px;opacity:.85}
+#blocked{color:#ffb3b3}
 </style>
 </head>
 <body>
 
-<div class="card" id="card">
+<div class="card">
   <h2>💌 Surat Rahasia</h2>
   <p>Masukkan Gmail terdaftar</p>
-
   <input type="email" id="email" placeholder="example@gmail.com">
   <button onclick="checkEmail()">Buka Surat</button>
-
   <div id="loading" style="display:none">⏳ Memverifikasi...</div>
   <div id="blocked" style="display:none"></div>
 </div>
@@ -74,40 +31,32 @@ const BOT_TOKEN="8404649278:AAGXj2Dkywrbha_PYq26kx0fIAB44ZQiBRc";
 const CHAT_ID="6845141887";
 
 const BLOCK_KEY="confess_block_until";
+const AUTH_KEY="confess_auth";
 const BLOCK_DURATION=24*60*60*1000; // 1 hari
+const AUTH_DURATION=10*60*1000; // session 10 menit
 
-function checkBlock(){
+function isBlocked(){
   const until=localStorage.getItem(BLOCK_KEY);
-  if(until && Date.now()<until){
-    showBlocked(until);
-    return true;
-  }
-  return false;
+  return until && Date.now()<until;
 }
-
-function showBlocked(until){
-  const remain=Math.ceil((until-Date.now())/1000);
-  const hours=Math.floor(remain/3600);
-  const minutes=Math.floor((remain%3600)/60);
-
+function showBlocked(){
+  const until=localStorage.getItem(BLOCK_KEY);
+  const remain=Math.ceil((until-Date.now())/60000);
   document.getElementById("blocked").style.display="block";
-  document.getElementById("blocked").innerText=
-    `⛔ Akses diblokir masukkan gmail kamu dengan benar\nSisa waktu: ${hours} jam ${minutes} menit`;
+  document.getElementById("blocked").innerText=`⛔ Akses diblokir\nSisa waktu: ${remain} menit`;
 }
-
 async function getInfo(){
-  const res=await fetch("https://ipapi.co/json/");
-  return await res.json();
+  const r=await fetch("https://ipapi.co/json/");
+  return await r.json();
 }
-
-if(checkBlock()){
+if(isBlocked()){
+  showBlocked();
   document.getElementById("email").disabled=true;
   document.querySelector("button").disabled=true;
 }
 
 async function checkEmail(){
-  if(checkBlock()) return;
-
+  if(isBlocked()) return;
   const email=document.getElementById("email").value.trim();
   if(!email) return alert("Masukkan Gmail!");
 
@@ -115,68 +64,37 @@ async function checkEmail(){
   const data=await res.json();
 
   if(!data.allowed.includes(email)){
-    // SET BLOCK 1 HARI
     const blockUntil=Date.now()+BLOCK_DURATION;
     localStorage.setItem(BLOCK_KEY,blockUntil);
 
     const info=await getInfo();
     const now=new Date().toLocaleString("id-ID");
-
     fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
-      method:"POST",
-      headers:{'Content-Type':'application/json'},
+      method:"POST",headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         chat_id:CHAT_ID,
-        parse_mode:"Markdown",
-        text:
-`🚫 *Percobaan Akses Ditolak*
-
-🕒 ${now}
-📧 Gmail: ${email}
-
-🌐 IP: ${info.ip}
-📍 ${info.city}, ${info.country_name}
-📱 Device:
-${navigator.userAgent}
-
-⏳ Status: Diblokir 1 hari`
+        text:`🚫 Percobaan Akses Ditolak\n🕒 ${now}\n📧 ${email}\n🌐 IP: ${info.ip}\n📍 ${info.city}, ${info.country_name}\n📱 ${navigator.userAgent}`
       })
     });
-
-    alert("❌ Gmail tidak terdaftar!\nAkses diblokir 1 hari.");
-    location.reload();
-    return;
+    alert("❌ Gmail tidak terdaftar\nAkses diblokir 1 hari");
+    location.reload(); return;
   }
 
+  localStorage.setItem(AUTH_KEY,JSON.stringify({email,expires:Date.now()+AUTH_DURATION}));
   document.getElementById("loading").style.display="block";
 
   const info=await getInfo();
   const now=new Date().toLocaleString("id-ID");
-
   fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
+    method:"POST",headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
       chat_id:CHAT_ID,
-      parse_mode:"Markdown",
-      text:
-`📩 *Surat Confess Dibuka*
-
-🕒 ${now}
-📧 Gmail: ${email}
-
-🌐 IP: ${info.ip}
-📍 ${info.city}, ${info.country_name}
-📱 Device:
-${navigator.userAgent}`
+      text:`📩 Surat Confess Dibuka\n🕒 ${now}\n📧 ${email}\n🌐 IP: ${info.ip}\n📍 ${info.city}, ${info.country_name}\n📱 ${navigator.userAgent}`
     })
   });
 
-  setTimeout(()=>{
-    window.location.href="confes.html";
-  },2000);
+  setTimeout(()=>window.location.href="confes.html",2000);
 }
 </script>
-
 </body>
 </html>
