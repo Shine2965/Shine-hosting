@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Private Letter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.card{
+  background:rgba(255,255,255,0.08);
+  padding:30px;
+  border-radius:16px;
+  width:320px;
+  text-align:center;
+  backdrop-filter: blur(10px);
+}
+input{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  margin-top:15px;
+}
+button{
+  margin-top:15px;
+  padding:12px;
+  width:100%;
+  border:none;
+  border-radius:10px;
+  background:#ff6a88;
+  color:#fff;
+  font-weight:600;
+}
+#loading{
+  display:none;
+  margin-top:20px;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Surat Pribadi</h2>
+  <p>Masukkan Gmail terdaftar</p>
+  <input type="email" id="email" placeholder="example@gmail.com">
+  <button onclick="checkEmail()">Buka Surat</button>
+  <div id="loading">⏳ Membuka surat...</div>
+</div>
+
+<script>
+const BOT_TOKEN = "8404649278:AAGXj2Dkywrbha_PYq26kx0fIAB44ZQiBRc";
+const CHAT_ID   = "8404649278";
+
+async function checkEmail(){
+  const email = document.getElementById("email").value.trim();
+  if(!email) return alert("Masukkan Gmail!");
+
+  const res = await fetch("gmail.json");
+  const data = await res.json();
+
+  if(!data.allowed.includes(email)){
+    alert("Gmail tidak terdaftar!");
+    return;
+  }
+
+  document.getElementById("loading").style.display="block";
+
+  const now = new Date().toLocaleString("id-ID");
+
+  fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      chat_id: CHAT_ID,
+      text:`📩 Seseorang telah membaca surat confess anda\n🕒 ${now}`
+    })
+  });
+
+  setTimeout(()=>{
+    window.location.href="confes.html";
+  },2000);
+}
+</script>
+
+</body>
+</html>
