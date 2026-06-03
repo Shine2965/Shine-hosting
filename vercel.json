@@ -1,0 +1,26 @@
+
+  {
+  "redirects": [
+    {
+      "source": "/home/",
+      "destination": "/tidaktersedia/",
+      "permanent": true 
+    },
+    {
+      "source": "/sosmed-2/",
+      "destination": "/tidaktersedia/",
+      "permanent": true
+    },
+     {
+      "source": "/ed-1/",
+      "destination": "/tidaktersedia/",
+      "permanent": true
+     },
+     {
+      "source": "/apprem/",
+      "destination": "/tidaktersedia/",
+      "permanent": true 
+    }
+  ]
+  
+  }
