@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dragon Redirector</title>
+    <title>Shine Shop - Gate</title>
     <style>
         * {
             margin: 0;
@@ -25,7 +25,7 @@
             border: 2px solid #00ff41;
             box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);
             text-align: center;
-            width: 400px;
+            width: 450px;
         }
         h1 {
             color: #00ff41;
@@ -87,56 +87,163 @@
             color: #00ff41;
         }
         #status {
-            color: #ff4444;
             font-size: 13px;
             margin-top: 12px;
-            min-height: 20px;
+            min-height: 40px;
+            padding: 8px;
+            border-radius: 6px;
+        }
+        .status-success {
+            color: #00ff41;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid #00ff41;
+        }
+        .status-error {
+            color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+        }
+        .status-loading {
+            color: #ffaa00;
+            background: rgba(255, 170, 0, 0.1);
+            border: 1px solid #ffaa00;
+        }
+        .wa-button {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 20px;
+            background: #25D366;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: 0.3s;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+        .wa-button:hover {
+            background: #1da851;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(37, 211, 102, 0.4);
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>⛓️ SHINE GATE</h1>
-        <div class="sub">// masukkan kode akses untuk ke web suntik sosmed//</div>
-        <input type="text" id="kodeInput" placeholder="Ketik kode di sini..." autofocus>
-        <button onclick="redirect()">➤ Verifikasi kode</button>
+        <h1>⛓️ Shine Shop GATE</h1>
+        <div class="sub">// Masukkan kode untuk menuju web suntik sosmed  //</div>
+        <input type="text" id="kodeInput" placeholder="Masukkan kode akses..." autofocus>
+        <button onclick="validate()">➤ VALIDASI</button>
         <div id="status"></div>
-        <div class="footer">© <span>Shine Shop</span> · 2023</div>
+        <div class="footer">© <span>Shine Shop</span> • 2023 </div>
     </div>
 
     <script>
-        function redirect() {
+        let daftarKode = [];
+
+        // Load akses.json dari folder yang sama
+        async function loadKodes() {
+            try {
+                const response = await fetch('akses.json');
+                if (!response.ok) throw new Error('File akses.json gak ketemu!');
+                const data = await response.json();
+                daftarKode = data.kodes || [];
+                return true;
+            } catch (error) {
+                console.error('Gagal load akses.json:', error);
+                return false;
+            }
+        }
+
+        async function validate() {
             const input = document.getElementById('kodeInput');
             const status = document.getElementById('status');
-            let kode = input.value.trim();
+            const kode = input.value.trim();
+
+            // Reset status
+            status.className = '';
+            status.innerHTML = '';
 
             if (kode === '') {
-                status.style.color = '#ff4444';
-                status.innerText = '❌ Kode kosong, anjir! Isi dulu.';
+                status.className = 'status-error';
+                status.innerHTML = '❌ Kode kosong, isi dulu!';
                 input.style.borderColor = '#ff4444';
-                setTimeout(() => {
-                    input.style.borderColor = '#333';
-                }, 1000);
+                setTimeout(() => input.style.borderColor = '#333', 1000);
                 return;
             }
 
-            // Bersihin karakter aneh biar aman buat URL
-            kode = encodeURIComponent(kode);
+            // Tampilkan loading
+            status.className = 'status-loading';
+            status.innerHTML = '⏳ Memeriksa kode...';
 
-            status.style.color = '#00ff41';
-            status.innerText = '⏳ Redirecting ke shinedomain...';
+            // Load data kode
+            const loaded = await loadKodes();
+            if (!loaded) {
+                status.className = 'status-error';
+                status.innerHTML = '❌ Gagal load database akses. Hubungi admin.';
+                return;
+            }
 
-            // Delay dikit biar keliatan efeknya (1 detik)
-            setTimeout(() => {
-                window.location.href = 'https://shinedomain.my.id?ref=' + kode;
-            }, 1000);
+            // Cek apakah kode terdaftar (case sensitive)
+            const found = daftarKode.includes(kode);
+
+            if (found) {
+                // KODE VALID -> redirect
+                status.className = 'status-success';
+                status.innerHTML = '✅ Kode valid! Redirecting...';
+                setTimeout(() => {
+                    window.location.href = 'https://shinedomain.my.id?ref=' + encodeURIComponent(kode);
+                }, 1000);
+            } else {
+                // KODE TIDAK VALID -> tolak + tampilkan kontak WA
+                status.className = 'status-error';
+                status.innerHTML = `
+                    ❌ KODE TIDAK TERDAFTAR!<br>
+                    <span style="font-size:12px; display:block; margin-top:8px;">
+                        Akses ditolak. Hubungi admin untuk registrasi:
+                    </span>
+                    <a href="https://wa.me/6289510381883?text=Halo%20Shine%20Shop,%20saya%20minta%20kode%20akses%20Dragon%20Gate" 
+                       class="wa-button" target="_blank">
+                        💬 HUBUNGI WHATSAPP SHINE SHOP
+                    </a>
+                    <span style="display:block; margin-top:8px; font-size:11px; color:#888;">
+                        089518103883
+                    </span>
+                `;
+                input.style.borderColor = '#ff4444';
+                setTimeout(() => input.style.borderColor = '#333', 2000);
+                // Reset input
+                input.value = '';
+            }
         }
 
-        // Biar bisa enter juga
+        // Enter key support
         document.getElementById('kodeInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                redirect();
+                validate();
             }
+        });
+
+        // Auto-load database saat halaman dibuka
+        document.addEventListener('DOMContentLoaded', function() {
+            loadKodes().then(success => {
+                const status = document.getElementById('status');
+                if (!success) {
+                    status.className = 'status-error';
+                    status.innerHTML = '⚠️ Database akses.json gak ditemukan!';
+                } else {
+                    status.className = 'status-success';
+                    status.innerHTML = '✅ Database akses loaded. ' + daftarKode.length + ' kode terdaftar.';
+                    setTimeout(() => {
+                        status.className = '';
+                        status.innerHTML = '';
+                    }, 2000);
+                }
+            });
         });
     </script>
 </body>
