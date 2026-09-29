@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Program Multi-Hitung Web</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; background: #121212; color: #00ff00; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .box { border: 1px solid #00ff00; padding: 20px; border-radius: 5px; background: #1a1a1a; margin-bottom: 20px; }
+        input, select, button { background: #222; color: #00ff00; border: 1px solid #00ff00; padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        button { cursor: pointer; font-weight: bold; }
+        button:hover { background: #00ff00; color: #000; }
+        .hidden { display: none; }
+        .animasi-teks { border-right: 2px solid #00ff00; white-space: nowrap; overflow: hidden; animation: typing 2s steps(40, end), blink .75s step-end infinite; }
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+        @keyframes blink { from, to { border-color: transparent } 50% { border-color: #00ff00 } }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h2>=== SELAMAT DATANG DI PROGRAM MULTI-HITUNG WEB 🗿 ===</h2>
+        
+        <form method="POST">
+            <label>Nama Anda:</label>
+            <input type="text" name="nama" required value="{{ request.form.get('nama', '') }}">
+            
+            <label>Tester :D :</label>
+            <input type="text" name="alamat" required value="{{ request.form.get('alamat', '') }}">
+
+            <label>Pilih Bangun Datar:</label>
+            <select name="jenis_bangun" id="jenis_bangun" onchange="toggleForm()">
+                <option value="segitiga" {% if jenis_bangun == 'segitiga' %}selected{% endif %}>Hitung Luas Segitiga (▲)</option>
+                <option value="persegi" {% if jenis_bangun == 'persegi' %}selected{% endif %}>Hitung Luas Persegi (■)</option>
+            </select>
+
+            <!-- Form Segitiga -->
+            <div id="form-segitiga">
+                <p style="text-align:center;">▲<br>/ \<br>/___\</p>
+                <label>Masukkan panjang alas (cm):</label>
+                <input type="number" step="any" name="alas" value="{{ request.form.get('alas', '') }}">
+                <label>Masukkan tinggi segitiga (cm):</label>
+                <input type="number" step="any" name="tinggi" value="{{ request.form.get('tinggi', '') }}">
+            </div>
+
+            <!-- Form Persegi -->
+            <div id="form-persegi" class="hidden">
+                <p style="text-align:center;">+---+<br>| &nbsp; |<br>+---+</p>
+                <label>Masukkan panjang sisi (cm):</label>
+                <input type="number" step="any" name="sisi" value="{{ request.form.get('sisi', '') }}">
+            </div>
+
+            <button type="submit">HITUNG SEKARANG</button>
+        </form>
+    </div>
+
+    {% if hasil %}
+    <div class="box">
+        <h3 class="animasi-teks">{{ data_user }}</h3>
+        <p>{{ hasil }}</p>
+        <p>Terima kasih telah menggunakan program ini! 🗿</p>
+    </div>
+    {% endif %}
+
+    <script>
+        function toggleForm() {
+            var pilihan = document.getElementById("jenis_bangun").value;
+            if (pilihan === "segitiga") {
+                document.getElementById("form-segitiga").classList.remove("hidden");
+                document.getElementById("form-persegi").classList.add("hidden");
+            } else {
+                document.getElementById("form-segitiga").classList.add("hidden");
+                document.getElementById("form-persegi").classList.remove("hidden");
+            }
+        }
+        // Jalankan saat load pertama kali untuk mempertahankan state pilihan form
+        window.onload = toggleForm;
+    </script>
+</body>
+</html>
